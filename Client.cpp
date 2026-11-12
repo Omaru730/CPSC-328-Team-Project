@@ -3,21 +3,42 @@
 #include <vector>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
 using namespace std;
 
 void Menue(int Guesses, string CurrentWord, string GuessedWord);
 void CorrectnessCheck(string GuessedWord, string CurrentWord);
 
-
-int main()
+int main(int argc, char *argv[])
 {
     int Guesses = 5;
     string CurrentWord = "black";
     string GuessedWord;
     int Socket;
+    int Port = 0;
+
+    struct sockaddr_in addr = {0};
+    addr.sin_family = AF_INET;
+    if( inet_pton(AF_INET, argv[1], &addr.sin_addr) <= 0)
+    {
+        perror("invalid address");
+        exit(1);
+    }
+
+    if (argv[2] != nullptr)
+    {
+        addr.sin_port = htons(atoi(argv[2]));
+    }
+    else
+    {
+        addr.sin_port = htons(Port);
+    }
+
 
     Socket = socket(AF_INET, SOCK_STREAM, 0);
-    cout << "Success" << endl;
+    int result = connect(Socket, (struct sockaddr *)&addr, sizeof(addr));
+    cout << result << endl;
 
     Menue(Guesses, CurrentWord, GuessedWord);
 
