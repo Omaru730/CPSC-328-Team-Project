@@ -4,7 +4,7 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 
-#define DEFAULT_PORT 50328
+#define DEFAULT_PORT 50300
 
 int main( int argc, char *argv[])
 {
