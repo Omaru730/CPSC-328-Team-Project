@@ -30,11 +30,11 @@ From the project folder, run:
 
 Link the Library with the Programs
 After Client.cpp and server.cpp include "wordlelib.h" and actually call the library functions, they can be compiled with:
-- g++ -Wall -Wextra Client.cpp -L. -lwordle -o client
-- g++ -Wall -Wextra server.cpp -L. -lwordle -o server
+- g++ -Wall -Wextra Client.cpp libwordle.a -o client
+- g++ -Wall -Wextra server.cpp libwordle.a -o server
 
 
-
+**Communication Protocol**:
 The application uses TCP (AF_INET, SOCK_STREAM). Messages are plain text terminated by a newline (\n).
 - Sender	Example message	Meaning
 - Server	HELLO\n	Greeting when a client connects.
