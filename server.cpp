@@ -3,8 +3,50 @@
 #include <unistd.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
+#include <time.h>
+#include <string>
+#include "wordlelib.h"
 
-#define DEFAULT_PORT 50328
+#define DEFAULT_PORT 50300
+#define MAX_MSG 128
+
+const std::string WORDS[] = {"linux", "debug", "bytes", "stack", "while", "loops", "token", "ports"};
+
+const int NUM_WORDS = 8;
+
+
+void handleClient(int client_fd)
+{
+        char buf[MAX_MSG];
+
+        /* Greet client */
+        if (sendMessage(client_fd, "HELLO\n") == -1) {
+                close(client_fd);
+                return;
+        }
+
+        /* Continue talking until client quits or hangs up */
+        while (receiveMessage(client_fd, buf, MAX_MSG) == 1) {
+                std::string msg = buf;
+                printf("Received: %s\n", buf);
+
+                if (msg == "READY" || msg == "WORD") {
+                        std::string reply = "WORD " + WORDS[rand() % NUM_WORDS] + "\n";
+                        if (sendMessage(client_fd, reply.c_str()) == -1) break;
+                        printf("Sent: %s", reply.c_str());
+                }
+                else if (msg == "QUIT" || msg == "BYE") {
+                        break;
+                }
+                else if (sendMessage(client_fd, "ERROR\n") == -1) {
+                        break;
+                }
+        }
+
+        close(client_fd);
+        printf("Client disconnected\n");
+}
+
 
 int main( int argc, char *argv[])
 {
@@ -21,6 +63,8 @@ int main( int argc, char *argv[])
         else
                 port = DEFAULT_PORT;
 
+        srand(time(NULL));
+
 
         /* Create TCP socket */
         int listen_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -29,9 +73,13 @@ int main( int argc, char *argv[])
                 exit(1);
         }
 
+        /* Allow server to restart immediately on the same port */
+        int yes = 1;
+        setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
+
 
         /* Fill out the address form */
-        struct sockaddr_in addr = {0};
+        struct sockaddr_in addr = {};
         addr.sin_family = AF_INET;
         addr.sin_addr.s_addr = INADDR_ANY;
         addr.sin_port = htons(port);
@@ -60,18 +108,12 @@ int main( int argc, char *argv[])
                         continue;
                 }
                 printf("Client connected\n");
+                handleClient(client_fd);
 
-                /*Send Greeting to client */
-                send(client_fd, "HELLO\n", 6, 0);
-
-                /* Hang up */
-                close(client_fd);
-                printf("Client disconnected\n");
         }
 
 
         close(listen_fd);
         return 0;
-
 }
-                    
+
