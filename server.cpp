@@ -31,7 +31,7 @@ void handleClient(int client_fd)
                 printf("Received: %s\n", buf);
 
                 if (msg == "READY" || msg == "WORD") {
-                        std::string reply = "WORD " + WORDS[rand() % NUM_WORDS] + "\n";
+                        std::string reply = WORDS[rand() % NUM_WORDS] + "\n";
                         if (sendMessage(client_fd, reply.c_str()) == -1) break;
                         printf("Sent: %s", reply.c_str());
                 }
