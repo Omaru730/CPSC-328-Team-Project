@@ -1,5 +1,7 @@
 #include <iostream>
 #include <string>
+#include "wordlelib.h"
+#include "wordlelib.cpp"
 #include <vector>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -7,14 +9,14 @@
 #include <unistd.h>
 using namespace std;
 
-void Menue(int Guesses, string CurrentWord, string GuessedWord);
+void Menue(int Guesses, int Socket, string CurrentWord, string GuessedWord);
 void CorrectnessCheck(string GuessedWord, string CurrentWord);
 
 int main(int argc, char *argv[])
 {
     int Guesses = 5;
-    string CurrentWord = "apple";
     string GuessedWord;
+    string CurrentWord;
     int Socket;
     int Port = 50300;
 
@@ -29,26 +31,43 @@ int main(int argc, char *argv[])
     if (argc > 2)
     {
         addr.sin_port = htons(atoi(argv[2]));
-        cout << addr.sin_port << endl;
     }
     else
     {
         addr.sin_port = htons(Port);
-        cout << addr.sin_port << endl;
     }
 
     Socket = socket(AF_INET, SOCK_STREAM, 0);
-    int result = connect(Socket, (struct sockaddr *)&addr, sizeof(addr));
-    cout << result << endl;
+    connect(Socket, (struct sockaddr *)&addr, sizeof(addr));
+    
 
-    Menue(Guesses, CurrentWord, GuessedWord);
+    char request[10];
+    if (receiveMessage(Socket, request, 10) != 1)
+    {
+        cout << "failed to recieve h" << endl;
+    }
+    if (sendMessage(Socket, "READY\n") != 1)
+    {
+        cout << "failed to send" << endl;
+    }
+    char receive[20];
+    if (receiveMessage(Socket, receive, 20) != 1)
+    {
+        cout << "failed to receive b" << endl;
+    }
+    
+    CurrentWord = receive;
+    Menue(Guesses, Socket, CurrentWord, GuessedWord);
+
 }
 
-void Menue(int Guesses, string CurrentWord, string GuessedWord)
+void Menue(int Guesses, int Socket, string CurrentWord, string GuessedWord)
 {
     cout << "Welcome to Wordle!" << endl;
-    cout << "Please guess your first word!" << endl;
+    string response;
+    while(response != "no")
     {
+        cout << "Please guess a word!" << endl;
         while (Guesses != 0)
         {
             cin >> GuessedWord;
@@ -70,6 +89,25 @@ void Menue(int Guesses, string CurrentWord, string GuessedWord)
                 cout << "You have " << Guesses << " guesses left." << endl; 
             }
 
+        }
+        cout << "Would you like to start the game again (yes/no)." << endl;
+        cin >> response;
+        if (response == "yes")
+        {
+            if (sendMessage(Socket, "READY\n") != 1)
+            {
+                cout << "failed to send" << endl;
+            }
+            char receive[20];
+            if (receiveMessage(Socket, receive, 20) != 1)
+            {
+                cout << "failed to receive b" << endl;
+            }
+            CurrentWord = receive;
+        }
+        else
+        {
+            sendMessage(Socket, "QUIT\n");
         }
     }
 }
@@ -114,10 +152,8 @@ void CorrectnessCheck(string GuessedWord, string CurrentWord)
     {
         cout << CorrectLetters[i] << " ";
     }
-    cout << " )";
-    cout << endl;
+    cout << " )" << endl;
 
-    cout << endl;
     cout << "( Yellow: ";
     for (int i = 0; i < YellowLetters.size(); i++)
     {
