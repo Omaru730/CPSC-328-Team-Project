@@ -1,1 +1,45 @@
 # CPSC-328-Team-Project
+
+CPSC-328-Team-Project
+Project Description
+This is a CPSC 328 team project to create a Wordle-style game using a TCP client and server in C++. The server will provide words and support multiple clients. The client will handle the player's guesses and display game feedback.
+
+
+Files & File	Purpose
+Client.cpp	Client program and Wordle gameplay
+server.cpp	TCP server
+wordlelib.h	Function declarations for the common library.
+wordlelib.cpp	Implementations of the library's sending and receiving functions.
+
+We chose a static library (libwordle.a). It is built from wordlelib.cpp and linked into programs during compilation. This avoids requiring a separate shared-library file when running the executables.
+
+
+
+Both the client and server will use these functions:
+- int sendMessage(int socketFD, const char message[]): Sends a newline-terminated message through a connected TCP socket. It continues sending until all bytes have been sent or an error occurs. Returns 1 on success and -1 on error or invalid input.
+- int receiveMessage(int socketFD, char message[], int size): Reads one character at a time until a newline is received. It removes the newline and adds a string terminator ('\0'). Returns 1 when a complete message is received, 0 if the connection closes, and -1 on error or if the message is too long.
+
+
+
+Build the Static Library (Linux / ACAD)
+From the project folder, run:
+- g++ -Wall -Wextra -c wordlelib.cpp -o wordlelib.o
+- ar rcs libwordle.a wordlelib.o
+
+
+
+Link the Library with the Programs
+After Client.cpp and server.cpp include "wordlelib.h" and actually call the library functions, they can be compiled with:
+- g++ -Wall -Wextra Client.cpp libwordle.a -o client
+- g++ -Wall -Wextra server.cpp libwordle.a -o server
+
+
+**Communication Protocol**:
+The application uses TCP (AF_INET, SOCK_STREAM). Messages are plain text terminated by a newline (\n).
+- Sender	Example message	Meaning
+- Server	HELLO\n	Greeting when a client connects.
+- Client	READY\n	Request a Wordle word.
+- Server	WORD black\n	Send a word (currently black in the test server).
+- Client	BYE\n	End the session.
+
+
