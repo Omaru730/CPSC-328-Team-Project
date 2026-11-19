@@ -3,6 +3,8 @@
 #include <unistd.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
+#include "wordlelib.h"
+#include <string.h>
 
 #define DEFAULT_PORT 50300
 
@@ -61,8 +63,47 @@ int main( int argc, char *argv[])
                 }
                 printf("Client connected\n");
 
-                /*Send Greeting to client */
-                send(client_fd, "HELLO\n", 6, 0);
+
+
+
+
+//~~~~~~~~~~~~~~~~~~~~~~ CHANGED
+                /* Send greeting using Wordle library */
+                if (sendMessage(client_fd, "HELLO\n") == 1) {
+                        printf("Sent HELLO\n");
+                }
+                else {
+                        printf("Error sending HELLO\n");
+                        close(client_fd);
+                        continue;
+                }
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+                //ADDED
+
+                /* Receive message from client */
+                char request[64];
+
+                int result = receiveMessage(client_fd, request, 64);
+
+                if (result == 1) {
+                        printf("Received: %s\n", request);
+                }
+                /* Check if client is ready */
+                if (strcmp(request, "READY") == 0) {
+                        sendMessage(client_fd, "WORD black\n");
+                        printf("Sent word: black\n");
+                }
+                
+                else {
+                        printf("Error receiving message or client disconnected\n");
+                }
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                
+
+
+
 
                 /* Hang up */
                 close(client_fd);
