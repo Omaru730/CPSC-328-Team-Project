@@ -5,9 +5,12 @@
 #include <sys/socket.h>
 #include <time.h>
 #include <string>
+#include <signal.h>
+#include <errno.h>
+#include <string.h>
 #include "wordlelib.h"
 
-#define DEFAULT_PORT 50300
+#define DEFAULT_PORT 50400
 #define MAX_MSG 128
 
 const std::string WORDS[] = {"linux", "debug", "bytes", "stack", "while", "loops", "token", "ports"};
@@ -15,25 +18,24 @@ const std::string WORDS[] = {"linux", "debug", "bytes", "stack", "while", "loops
 const int NUM_WORDS = 8;
 
 
-void handleClient(int client_fd)
+void handleClient(int client_fd, int clientId)
 {
         char buf[MAX_MSG];
 
         /* Greet client */
         if (sendMessage(client_fd, "HELLO\n") == -1) {
-                close(client_fd);
                 return;
         }
 
         /* Continue talking until client quits or hangs up */
         while (receiveMessage(client_fd, buf, MAX_MSG) == 1) {
                 std::string msg = buf;
-                printf("Received: %s\n", buf);
+                printf("[Client %d] Received: %s\n", clientId, buf);
 
                 if (msg == "READY" || msg == "WORD") {
                         std::string reply = WORDS[rand() % NUM_WORDS] + "\n";
                         if (sendMessage(client_fd, reply.c_str()) == -1) break;
-                        printf("Sent: %s", reply.c_str());
+                        printf("[Client %d] Sent: %s", clientId, reply.c_str());
                 }
                 else if (msg == "QUIT" || msg == "BYE") {
                         break;
@@ -43,9 +45,9 @@ void handleClient(int client_fd)
                 }
         }
 
-        close(client_fd);
-        printf("Client disconnected\n");
+        printf("[Client %d] Client disconnected\n", clientId);
 }
+
 
 
 int main( int argc, char *argv[])
@@ -58,12 +60,26 @@ int main( int argc, char *argv[])
         }
 
 
-        if (argc == 2)
-                port = atoi(argv[1]);
-        else
+        if (argc == 2) {
+                char *end;
+                long p = strtol(argv[1], &end, 10);
+                if (*end != '\0' || p < 1024 || p > 65536) {
+                        fprintf(stderr, "Invalid port '%s' (must be 1024 - 65535)\n", argv[1]);
+                        fprintf(stderr, "Usage %s [port]\n", argv[0]);
+                        exit(1);
+                }
+                port = int(p);
+                printf("Port %d accepted\n", port);
+        }
+        else {
                 port = DEFAULT_PORT;
+        }
+
 
         srand(time(NULL));
+        signal(SIGCHLD, SIG_IGN);
+        signal(SIGPIPE, SIG_IGN);
+
 
 
         /* Create TCP socket */
@@ -101,14 +117,39 @@ int main( int argc, char *argv[])
         printf("Server listening on port %d\n", port);
 
         /* Answer client with accept */
+
+        int clientCount = 0;
+
         while (1) {
                 int client_fd = accept(listen_fd, NULL, NULL);
                 if (client_fd == -1) {
+                        if (errno == EINTR) continue;
                         perror("accept");
                         continue;
                 }
-                printf("Client connected\n");
-                handleClient(client_fd);
+                clientCount++;
+                int clientId = clientCount;
+                printf("[Client %d] connected\n", clientId);
+                fflush(stdout);
+
+                pid_t pid = fork();
+                if (pid == -1) {
+                        perror("fork");
+                        close(client_fd);
+                        continue;
+                }
+
+                if (pid == 0) {
+                        /* Child */
+                        close(listen_fd);
+                        srand(time(NULL) ^ getpid());
+                        handleClient(client_fd, clientId);
+                        close(client_fd);
+                        exit(0);
+                }
+
+                /* Parent */
+                close(client_fd);
 
         }
 
@@ -116,4 +157,3 @@ int main( int argc, char *argv[])
         close(listen_fd);
         return 0;
 }
-
