@@ -49,6 +49,7 @@ void handleClient(int client_fd, int clientId)
 }
 
 
+#define DEFAULT_PORT 50400
 
 int main( int argc, char *argv[])
 {
