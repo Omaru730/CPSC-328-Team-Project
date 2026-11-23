@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include "wordlelib.h"
 #include <vector>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -7,18 +8,18 @@
 #include <unistd.h>
 using namespace std;
 
-void Menue(int Guesses, string CurrentWord, string GuessedWord);
+void Menue(int Guesses, int Socket, string CurrentWord, string GuessedWord);
 void CorrectnessCheck(string GuessedWord, string CurrentWord);
 
 int main(int argc, char *argv[])
 {
-    int Guesses = 5;
-    string CurrentWord = "apple";
+    int Guesses = 6;
     string GuessedWord;
+    string CurrentWord;
     int Socket;
     int Port = 50300;
 
-    struct sockaddr_in addr = {0};
+    struct sockaddr_in addr;
     addr.sin_family = AF_INET;
     if( inet_pton(AF_INET, argv[1], &addr.sin_addr) <= 0)
     {
@@ -29,26 +30,43 @@ int main(int argc, char *argv[])
     if (argc > 2)
     {
         addr.sin_port = htons(atoi(argv[2]));
-        cout << addr.sin_port << endl;
     }
     else
     {
         addr.sin_port = htons(Port);
-        cout << addr.sin_port << endl;
     }
 
     Socket = socket(AF_INET, SOCK_STREAM, 0);
-    int result = connect(Socket, (struct sockaddr *)&addr, sizeof(addr));
-    cout << result << endl;
+    connect(Socket, (struct sockaddr *)&addr, sizeof(addr));
+    
 
-    Menue(Guesses, CurrentWord, GuessedWord);
+    char request[10];
+    if (receiveMessage(Socket, request, 10) != 1)
+    {
+        cout << "failed to recieve h" << endl;
+    }
+    if (sendMessage(Socket, "READY\n") != 1)
+    {
+        cout << "failed to send" << endl;
+    }
+    char receive[20];
+    if (receiveMessage(Socket, receive, 20) != 1)
+    {
+        cout << "failed to receive b" << endl;
+    }
+    
+    CurrentWord = receive;
+    Menue(Guesses, Socket, CurrentWord, GuessedWord);
+
 }
 
-void Menue(int Guesses, string CurrentWord, string GuessedWord)
+void Menue(int Guesses, int Socket, string CurrentWord, string GuessedWord)
 {
     cout << "Welcome to Wordle!" << endl;
-    cout << "Please guess your first word!" << endl;
+    string response;
+    while(response != "no")
     {
+        cout << "Please guess a word!" << endl;
         while (Guesses != 0)
         {
             cin >> GuessedWord;
@@ -60,7 +78,7 @@ void Menue(int Guesses, string CurrentWord, string GuessedWord)
             if (GuessedWord == CurrentWord)
             {
                 cout << "You Guessed the word!" << endl;
-                Guesses = 5;
+                Guesses = 6;
                 break;
             }
             else
@@ -71,6 +89,25 @@ void Menue(int Guesses, string CurrentWord, string GuessedWord)
             }
 
         }
+        cout << "Would you like to start the game again (yes/no)." << endl;
+        cin >> response;
+        if (response == "yes")
+        {
+            if (sendMessage(Socket, "READY\n") != 1)
+            {
+                cout << "failed to send" << endl;
+            }
+            char receive[20];
+            if (receiveMessage(Socket, receive, 20) != 1)
+            {
+                cout << "failed to receive b" << endl;
+            }
+            CurrentWord = receive;
+        }
+        else
+        {
+            sendMessage(Socket, "QUIT\n");
+        }
     }
 }
 
@@ -78,10 +115,13 @@ void CorrectnessCheck(string GuessedWord, string CurrentWord)
 {
     string Dummy = "_____";
     string tracker = CurrentWord;
+    string ytracker = CurrentWord;
     int trackerpos;
+    int ytrackerpos;
     vector<char> CorrectLetters;
     vector<char> YellowLetters;
-    for (int i = 0; i < GuessedWord.length(); i++)
+
+    for (size_t i = 0; i < GuessedWord.length(); i++)
     {
         if(CurrentWord[i] == GuessedWord[i])
         {
@@ -93,6 +133,11 @@ void CorrectnessCheck(string GuessedWord, string CurrentWord)
                 trackerpos = tracker.find(GuessedWord[i]);
                 tracker.erase(trackerpos, 1);
             }
+            if (ytracker.find(GuessedWord[i]) != std::string::npos)
+            {
+                ytrackerpos = ytracker.find(GuessedWord[i]);
+                ytracker.erase(ytrackerpos, 1);
+            }
         }
         else if(tracker.find(GuessedWord[i]) != std::string::npos)
         {
@@ -103,23 +148,30 @@ void CorrectnessCheck(string GuessedWord, string CurrentWord)
         }
     }
 
+    for (size_t i = 0; i < YellowLetters.size(); i++)
+    {
+        if (ytracker.find(YellowLetters[i]) == std::string::npos)
+        {
+            YellowLetters.erase(YellowLetters.begin() + i);
+            Dummy[Dummy.find(YellowLetters[i])] = '_';
+        }
+    }
 
-    for (int i = 0; i < Dummy.length(); i++)
+
+    for (size_t i = 0; i < Dummy.length(); i++)
     {
         cout << Dummy[i] << " ";
     }
     cout << endl;
     cout << "( GREEN: ";
-    for (int i = 0; i < CorrectLetters.size(); i++)
+    for (size_t i = 0; i < CorrectLetters.size(); i++)
     {
         cout << CorrectLetters[i] << " ";
     }
-    cout << " )";
-    cout << endl;
+    cout << " )" << endl;
 
-    cout << endl;
     cout << "( Yellow: ";
-    for (int i = 0; i < YellowLetters.size(); i++)
+    for (size_t i = 0; i < YellowLetters.size(); i++)
     {
         cout << YellowLetters[i] << " ";
     }
