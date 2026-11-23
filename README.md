@@ -21,10 +21,10 @@ We chose a static library (libwordle.a). It is built from wordlelib.cpp and link
 
 
 ## Both the client and server will use the below functions from the static library:
-#### int sendMessage(int socketFD, const char message[]):
+#### int sendMessage(int socketFD, const char message[])
 ###### Sends a newline-terminated message through a connected TCP socket. It continues sending until all bytes have been sent or an error occurs. Returns 1 on success and -1 on error or invalid input.
-- int receiveMessage(int socketFD, char message[], int size):
-##### Reads one character at a time until a newline is received. It removes the newline and adds a string terminator ('\0'). Returns 1 when a complete message is received, 0 if the connection closes, and -1 on error or if the message is too long.
+#### int receiveMessage(int socketFD, char message[], int size)
+###### Reads one character at a time until a newline is received. It removes the newline and adds a string terminator ('\0'). Returns 1 when a complete message is received, 0 if the connection closes, and -1 on error or if the message is too long.
 
 
 
