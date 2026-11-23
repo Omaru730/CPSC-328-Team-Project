@@ -4,6 +4,9 @@ CPSC-328-Team-Project
 Project Description
 This is a CPSC 328 team project to create a Wordle-style game using a TCP client and server in C++. The server will provide words and support multiple clients. The client will handle the player's guesses and display game feedback.
 
+Project Lead:
+- Keith Groves.
+
 Team Responsibilities: 
 - Keith Groves - client.
 - Omaru Jalloh - server.
@@ -37,6 +40,15 @@ After Client.cpp and server.cpp include "wordlelib.h" and actually call the libr
 - g++ -Wall -Wextra Client.cpp libwordle.a -o client
 - g++ -Wall -Wextra server.cpp libwordle.a -o server
 
+Client Execution:
+After compiling the client, run ./client with a valid server address. Optionally, you can also run a custom port number:
+- ./client 127.0.0.2
+- ./client 127.0.0.2 50300
+
+Server Execution:
+After compiling the server, run ./server. Optionally, you can also run a custom port number:
+- ./server
+- ./server 50300
 
 **Communication Protocol**:
 The application uses TCP (AF_INET, SOCK_STREAM). Messages are plain text terminated by a newline (\n).
