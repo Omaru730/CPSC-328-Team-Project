@@ -1,9 +1,6 @@
 # CPSC-328-Team-Project
 
-## References
 
-- GitHub Docs. Basic writing and formatting syntax.
-  https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax
 
 ## CPSC-328-Team-Project
 Project Description
@@ -45,7 +42,7 @@ After Client.cpp and server.cpp include "wordlelib.h" and actually call the libr
 - g++ -Wall -Wextra server.cpp libwordle.a -o server
 
 
-## Build Using the Makefile
+## Build Using the Makefile or Manual Instructions
 You can compile the program manually using the steps below or use the included Makefile to simplify compiling the library, client, and server on Linux/ACAD.
 
 Client Execution:
@@ -66,4 +63,7 @@ The application uses TCP (AF_INET, SOCK_STREAM). Messages are plain text termina
 - Server	WORD black\n	Send a word (currently black in the test server).
 - Client	BYE\n	End the session.
 
+## References
 
+- GitHub Docs. Basic writing and formatting syntax.
+  https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax
