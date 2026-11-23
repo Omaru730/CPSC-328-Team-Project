@@ -13,10 +13,10 @@ Team Responsibilities:
 - Jason Vox - library.
 
 Files & File	Purpose
-Client.cpp	Client program and Wordle gameplay
-server.cpp	TCP server
-wordlelib.h	Function declarations for the common library.
-wordlelib.cpp	Implementations of the library's sending and receiving functions.
+- Client.cpp	Client program and Wordle gameplay
+- server.cpp	TCP server
+- wordlelib.h	Function declarations for the common library.
+- wordlelib.cpp	Implementations of the library's sending and receiving functions.
 
 We chose a static library (libwordle.a). It is built from wordlelib.cpp and linked into programs during compilation. This avoids requiring a separate shared-library file when running the executables.
 
