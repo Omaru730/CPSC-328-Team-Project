@@ -1,7 +1,27 @@
+/*******************************************************************************/
+/* Author:            Jason Vaux                                               */
+/* Date Updated:      November 23, 2026                                        */
+/* Due Date:          November 23, 2026                                        */
+/* Course:            CPSC 328                                                 */
+/* Professor Name:    Mr. Walther                                              */
+/* Assignment:        Team Network Program Design                              */
+/* Filename:          wordlelib.cpp                                            */
+/* Purpose:           Implement the shared TCP message functions.              */
+/*******************************************************************************/
+
 
 #include "wordlelib.h"
 #include <sys/socket.h>
 #include <string.h>
+
+/*****************************************************************************/
+/* Function name:    sendMessage                                             */
+/* Description:      Send a complete newline-terminated message over a TCP   */
+/*                   socket. Keep sending until all bytes are sent.          */
+/* Parameters:       socketFD - connected socket descriptor                  */
+/*                   message - text ending with a newline (\n)               */
+/* Return Value:     1 on success; -1 on error or invalid message            */
+/*****************************************************************************/
 
 // Send a complete message through a socket
 int sendMessage(int socketFD, const char message[])
@@ -31,7 +51,16 @@ int sendMessage(int socketFD, const char message[])
     return 1;
 }
 
-
+/*****************************************************************************/
+/* Function name:    receiveMessage                                          */
+/* Description:      Receive characters until a newline is found. Remove     */
+/*                   the newline and terminate the result with '\0'.         */
+/* Parameters:       socketFD - connected socket descriptor                  */
+/*                   message - character array for the received text         */
+/*                   size - total size of the character array                */
+/* Return Value:     1 on success; 0 on disconnect; -1 on error or           */
+/*                   message too long                                        */
+/*****************************************************************************/
 // Receive a complete message through a socket
 int receiveMessage(int socketFD, char message[], int size)
 {
