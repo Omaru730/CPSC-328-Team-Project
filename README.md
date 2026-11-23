@@ -10,7 +10,7 @@ Project Lead:
 Team Responsibilities: 
 - Keith Groves - client.
 - Omaru Jalloh - server.
-- Jason Vox - library.
+- Jason Vaux - library.
 
 Files & File	Purpose
 - Client.cpp	Client program and Wordle gameplay
