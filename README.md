@@ -20,7 +20,7 @@ This is a CPSC 328 team project to create a Wordle-style game using a TCP client
 We chose a static library (libwordle.a). It is built from wordlelib.cpp and linked into programs during compilation. This avoids requiring a separate shared-library file when running the executables. 
 
 
-Both the client and server will use these functions from the static library:
+## Both the client and server will use the below functions from the static library:
 - int sendMessage(int socketFD, const char message[]):
 ##### Sends a newline-terminated message through a connected TCP socket. It continues sending until all bytes have been sent or an error occurs. Returns 1 on success and -1 on error or invalid input.
 - int receiveMessage(int socketFD, char message[], int size):
