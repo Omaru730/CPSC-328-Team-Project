@@ -40,6 +40,10 @@ After Client.cpp and server.cpp include "wordlelib.h" and actually call the libr
 - g++ -Wall -Wextra Client.cpp libwordle.a -o client
 - g++ -Wall -Wextra server.cpp libwordle.a -o server
 
+
+Build Using the Makefile
+You can compile the program manually using the steps below or use the included Makefile to simplify compiling the library, client, and server on Linux/ACAD.
+
 Client Execution:
 After compiling the client, run ./client with a valid server address. Optionally, you can also run a custom port number:
 - ./client 127.0.0.2
