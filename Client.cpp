@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
     string GuessedWord;
     string CurrentWord;
     int Socket;
-    int Port = 50300;
+    int Port = 50400;
 
     struct sockaddr_in addr;
     addr.sin_family = AF_INET;
