@@ -1,7 +1,6 @@
 #include <iostream>
 #include <string>
 #include "wordlelib.h"
-#include "wordlelib.cpp"
 #include <vector>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -14,13 +13,13 @@ void CorrectnessCheck(string GuessedWord, string CurrentWord);
 
 int main(int argc, char *argv[])
 {
-    int Guesses = 5;
+    int Guesses = 6;
     string GuessedWord;
     string CurrentWord;
     int Socket;
     int Port = 50300;
 
-    struct sockaddr_in addr = {0};
+    struct sockaddr_in addr;
     addr.sin_family = AF_INET;
     if( inet_pton(AF_INET, argv[1], &addr.sin_addr) <= 0)
     {
@@ -79,7 +78,7 @@ void Menue(int Guesses, int Socket, string CurrentWord, string GuessedWord)
             if (GuessedWord == CurrentWord)
             {
                 cout << "You Guessed the word!" << endl;
-                Guesses = 5;
+                Guesses = 6;
                 break;
             }
             else
@@ -116,10 +115,13 @@ void CorrectnessCheck(string GuessedWord, string CurrentWord)
 {
     string Dummy = "_____";
     string tracker = CurrentWord;
+    string ytracker = CurrentWord;
     int trackerpos;
+    int ytrackerpos;
     vector<char> CorrectLetters;
     vector<char> YellowLetters;
-    for (int i = 0; i < GuessedWord.length(); i++)
+
+    for (size_t i = 0; i < GuessedWord.length(); i++)
     {
         if(CurrentWord[i] == GuessedWord[i])
         {
@@ -131,6 +133,11 @@ void CorrectnessCheck(string GuessedWord, string CurrentWord)
                 trackerpos = tracker.find(GuessedWord[i]);
                 tracker.erase(trackerpos, 1);
             }
+            if (ytracker.find(GuessedWord[i]) != std::string::npos)
+            {
+                ytrackerpos = ytracker.find(GuessedWord[i]);
+                ytracker.erase(ytrackerpos, 1);
+            }
         }
         else if(tracker.find(GuessedWord[i]) != std::string::npos)
         {
@@ -141,21 +148,30 @@ void CorrectnessCheck(string GuessedWord, string CurrentWord)
         }
     }
 
+    for (size_t i = 0; i < YellowLetters.size(); i++)
+    {
+        if (ytracker.find(YellowLetters[i]) == std::string::npos)
+        {
+            YellowLetters.erase(YellowLetters.begin() + i);
+            Dummy[Dummy.find(YellowLetters[i])] = '_';
+        }
+    }
 
-    for (int i = 0; i < Dummy.length(); i++)
+
+    for (size_t i = 0; i < Dummy.length(); i++)
     {
         cout << Dummy[i] << " ";
     }
     cout << endl;
     cout << "( GREEN: ";
-    for (int i = 0; i < CorrectLetters.size(); i++)
+    for (size_t i = 0; i < CorrectLetters.size(); i++)
     {
         cout << CorrectLetters[i] << " ";
     }
     cout << " )" << endl;
 
     cout << "( Yellow: ";
-    for (int i = 0; i < YellowLetters.size(); i++)
+    for (size_t i = 0; i < YellowLetters.size(); i++)
     {
         cout << YellowLetters[i] << " ";
     }
