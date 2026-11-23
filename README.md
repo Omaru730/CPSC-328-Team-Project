@@ -5,9 +5,9 @@ Project Description
 This is a CPSC 328 team project to create a Wordle-style game using a TCP client and server in C++. The server will provide words and support multiple clients. The client will handle the player's guesses and display game feedback.
 
 Team Responsibilities: 
-Keith Groves - client.
-Omaru Jalloh - server.
-Jason Vox - library.
+- Keith Groves - client.
+- Omaru Jalloh - server.
+- Jason Vox - library.
 
 Files & File	Purpose
 Client.cpp	Client program and Wordle gameplay
