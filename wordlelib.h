@@ -12,4 +12,3 @@ int receiveMessage(int socketFD, char message[], int size);
 #endif
 
 
-//just declarations started, code to follow
