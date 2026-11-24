@@ -12,15 +12,17 @@ This is a CPSC 328 team project to create a Wordle-style game using a TCP client
 - Jason Vaux - library.
 
 ## Files & File	Purpose
-- Client.cpp	Client program and Wordle gameplay
-- server.cpp	TCP server
-- wordlelib.h	Function declarations for the common library.
-- wordlelib.cpp	Implementations of the library's sending and receiving functions.
+- `Client.cpp`	Client program and Wordle gameplay.
+- `server.cpp`	TCP server.
+- `wordlelib.h`	Function declarations for the common library.
+- `wordlelib.cpp`	Implementations of the library's sending and receiving functions.
+- `MakeFfile` Compiles the static library, client, and server.
+- `README.md` Project documentation and instructions.
 
 We chose a static library (libwordle.a). It is built from wordlelib.cpp and linked into programs during compilation. This avoids requiring a separate shared-library file when running the executables. 
 
 
-## Both the client and server will use the below functions from the static library:
+## Static Library Functions
 #### int sendMessage(int socketFD, const char message[])
 ###### Sends a newline-terminated message through a connected TCP socket. It continues sending until all bytes have been sent or an error occurs. Returns 1 on success and -1 on error or invalid input.
 #### int receiveMessage(int socketFD, char message[], int size)
@@ -102,14 +104,18 @@ The client and server communicate using TCP (`AF_INET`, `SOCK_STREAM`). Messages
 
 The `receiveMessage()` function reads one character at a time until it receives a newline. This allows the program to know when the complete message has been received.
 
+
 ### Protocol Messages
 
 | Sender | Message | Purpose |
 |---|---|---|
 | Server | `HELLO\n` | Greets the client when connected. |
-| Client | `READY\n` | Requests a random word. |
-| Server | `linux\n` | Sends a random five-letter word. |
-| Client | `QUIT\n` | Ends the connection. |
+| Client | `READY\n` or `WORD\n` | Requests a random word. |
+| Server | `linux\n` | Example of a random five-letter word. |
+| Client | `QUIT\n` or `BYE\n` | Ends the connection. |
+| Server | `ERROR\n` | Responds to an unsupported message. |
+
+
 ### How the Protocol Works
 
 1. The client connects to the server.
@@ -125,7 +131,7 @@ The `receiveMessage()` function reads one character at a time until it receives 
 
 Our team divided the project into three main responsibilities. Keith Groves worked on the client, Omaru Jalloh worked on the server, and Jason Vaux worked on the shared library and README.
 
-We used GitHub to manage the project files and worked on separate branches for our assigned sections. The files were combined into the main branch so the client, server, and library could be compiled and tested together. Additionally, we used Discord for constant messaging and had several meetings over voice channels
+We used GitHub to manage the project files and worked on separate branches for our assigned sections. The files were combined into the main branch so the client, server, and library could be compiled and tested together. Additionally, we used Discord for constant messaging and had several meetings over voice channels.
 
 
 ## References
