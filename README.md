@@ -1,6 +1,6 @@
 # CPSC-328-Team-Project
 
-##Project Description
+## Project Description
 This is a CPSC 328 team project to create a Wordle-style game using a TCP client and server in C++. The server will provide words and support multiple clients. The client will handle the player's guesses and display game feedback.
 
 ### Project Lead:
@@ -96,7 +96,20 @@ Open another terminal to run the client. Enter the server's IP address or hostna
 The client and server must use the same port number. The address `127.0.0.1` is used when the client and server are running on the same computer.
 
 
+## Communication Protocol
 
+The client and server communicate using TCP (`AF_INET`, `SOCK_STREAM`). Messages are sent as plain text and end with a newline character (`\n`).
+
+The `receiveMessage()` function reads one character at a time until it receives a newline. This allows the program to know when the complete message has been received.
+
+### Protocol Messages
+
+| Sender | Message | Purpose |
+|---|---|---|
+| Server | `HELLO\n` | Greets the client when connected. |
+| Client | `READY\n` | Requests a random word. |
+| Server | `linux\n` | Sends a random five-letter word. |
+| Client | `QUIT\n` | Ends the connection. |
 ### How the Protocol Works
 
 1. The client connects to the server.
@@ -108,6 +121,11 @@ The client and server must use the same port number. The address `127.0.0.1` is 
 7. If the player chooses to play again, the client sends another `READY` message.
 8. If the player chooses to quit, the client sends `QUIT` and closes the connection.
 
+## Team Collaboration
+
+Our team divided the project into three main responsibilities. Keith Groves worked on the client, Omaru Jalloh worked on the server, and Jason Vaux worked on the shared library and README.
+
+We used GitHub to manage the project files and worked on separate branches for our assigned sections. The files were combined into the main branch so the client, server, and library could be compiled and tested together. Additionally, we used Discord for constant messaging and had several meetings over voice channels
 
 
 ## References
