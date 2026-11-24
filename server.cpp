@@ -1,5 +1,24 @@
+/************************************************************/
+/* Author: Omaru Jalloh                                     */
+/* Major: Information Technology                            */
+/* Creation Date: November 11, 2026                         */
+/* Due Date: November 23, 2026                              */
+/* Course: CSC328 020                                       */
+/* Professor Name: Professor Walther                        */
+/* Assignment: Group Project                                */
+/* Filename: server.cpp                                     */
+/* Purpose: This program is a concurrent, connection        */
+/*          oriented TCP Wordle Server. It accepts an       */
+/*          optional port number, then forks a child        */
+/*          for each client. Each child sends HELLO and     */
+/*          sends a random 5 letter word when the client    */
+/*          sends READY or WORD, replies ERROR to invalid   */ 
+/*          messages and ends when the client sends BYE,    */
+/*          QUIT, or disconnects                            */
+/*                                                          */
+/************************************************************/
 #include <stdio.h>
-#include <stdlib.h>
+#include <stdlib.h> 
 #include <unistd.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
@@ -17,7 +36,20 @@ const std::string WORDS[] = {"linux", "debug", "bytes", "stack", "while", "loops
 
 const int NUM_WORDS = 8;
 
-
+/***********************************************************************/
+/*                                                                     */
+/* Function Name: handleClient                                         */
+/* Description: Runs the Wordle protocol with a client. It will send   */
+/*              a greeting(HELLO), replies to READY/WORD with a        */
+/*              random word, replies ERROR to invalid messages and     */
+/*              returns when the client sends BYE or QUIT or           */
+/*              disconnects.                                           */
+/*                                                                     */
+/* Parameters: int client_fd: connected socket for this client - input */
+/*             int clientId: unique id for this client - input         */
+/* Return Value: void - none                                           */
+/*                                                                     */
+/***********************************************************************/
 void handleClient(int client_fd, int clientId)
 {
         char buf[MAX_MSG];
@@ -48,7 +80,21 @@ void handleClient(int client_fd, int clientId)
         printf("[Client %d] Client disconnected\n", clientId);
 }
 
-
+/***********************************************************************/
+/*                                                                     */
+/* Function Name: main                                                 */
+/* Description: Validates the optional port argument, creates a TCP    */
+/*              listening socket, and accepts clients in a loop. Forks */
+/*              a child process for each client to run handleClient,   */
+/*              while the parent keeps accepting more clients.         */
+/*                                                                     */
+/* Parameters: int argc: number of command line arguments - input      */
+/*             char *argv[]: command line arguments: argv[1] is the    */
+/*                           optional port number - input              */
+/* Return Value: int - 0 on normal exit, Exits with 1 on a usage or    */
+/*               socket setup error                                    */
+/*                                                                     */
+/***********************************************************************/
 int main( int argc, char *argv[])
 {
         int port;
@@ -75,8 +121,9 @@ int main( int argc, char *argv[])
         }
 
 
-        srand(time(NULL));
+        /* Kernel reaps finished children to avoid zombies */
         signal(SIGCHLD, SIG_IGN);
+        /*Sending to a closed client will return -1, no crash*/
         signal(SIGPIPE, SIG_IGN);
 
 
@@ -144,6 +191,7 @@ int main( int argc, char *argv[])
                 if (pid == 0) {
                         /* Child */
                         close(listen_fd);
+                        /* Child picks different words*/
                         srand(time(NULL) ^ getpid());
                         handleClient(client_fd, clientId);
                         close(client_fd);
@@ -152,10 +200,9 @@ int main( int argc, char *argv[])
 
                 /* Parent */
                 close(client_fd);
-
         }
-
-
         close(listen_fd);
         return 0;
+
 }
+
