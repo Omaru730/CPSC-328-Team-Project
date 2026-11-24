@@ -135,8 +135,7 @@ We used GitHub to manage the project files and worked on separate branches for o
 
 ## Known Application Issues
 
-- The client does not currently display the remaining unguessed letters.
-- Some repeated-letter combinations may require additional testing.
+The client does not currently display the remaining unguessed letters.
 
 
 ## References
