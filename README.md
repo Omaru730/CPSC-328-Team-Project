@@ -133,6 +133,11 @@ Our team divided the project into three main responsibilities. Keith Groves work
 
 We used GitHub to manage the project files and worked on separate branches for our assigned sections. The files were combined into the main branch so the client, server, and library could be compiled and tested together. Additionally, we used Discord for constant messaging and had several meetings over voice channels.
 
+## Known Application Issues
+
+- The client does not currently display the remaining unguessed letters.
+- Some repeated-letter combinations may require additional testing.
+
 
 ## References
 
