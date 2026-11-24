@@ -16,7 +16,7 @@ This is a CPSC 328 team project to create a Wordle-style game using a TCP client
 - `server.cpp`	TCP server.
 - `wordlelib.h`	Function declarations for the common library.
 - `wordlelib.cpp`	Implementations of the library's sending and receiving functions.
-- `MakeFfile` Compiles the static library, client, and server.
+- `Makefile` Compiles the static library, client, and server.
 - `README.md` Project documentation and instructions.
 
 We chose a static library (libwordle.a). It is built from wordlelib.cpp and linked into programs during compilation. This avoids requiring a separate shared-library file when running the executables. 
@@ -129,7 +129,7 @@ The `receiveMessage()` function reads one character at a time until it receives 
 
 ## Team Collaboration
 
-Our team divided the project into three main responsibilities. Keith Groves worked on the client, Omaru Jalloh worked on the server, and Jason Vaux worked on the shared library and README.
+Our team divided the project into three main responsibilities. Keith Groves worked on the client, Omaru Jalloh worked on the server, and Jason Vaux worked on the static library, Makefile, and README.
 
 We used GitHub to manage the project files and worked on separate branches for our assigned sections. The files were combined into the main branch so the client, server, and library could be compiled and tested together. Additionally, we used Discord for constant messaging and had several meetings over voice channels.
 
