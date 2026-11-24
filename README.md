@@ -95,22 +95,7 @@ Open another terminal to run the client. Enter the server's IP address or hostna
 
 The client and server must use the same port number. The address `127.0.0.1` is used when the client and server are running on the same computer.
 
----
 
-## Communication Protocol
-
-The application uses TCP (`AF_INET`, `SOCK_STREAM`) to communicate between the client and server.
-
-Messages are sent as plain text and end with a newline character (`\n`). The `receiveMessage()` function reads characters until the newline is received, allowing the program to identify a complete message.
-
-### Protocol Messages
-
-| Sender | Message | Purpose |
-|---|---|---|
-| Server | `HELLO\n` | Greets the client after connecting. |
-| Client | `READY\n` | Requests a random Wordle word. |
-| Server | `linux\n` | Sends a random five-letter word from the word bank. |
-| Client | `QUIT\n` | Ends the connection with the server. |
 
 ### How the Protocol Works
 
@@ -124,45 +109,6 @@ Messages are sent as plain text and end with a newline character (`\n`). The `re
 8. If the player chooses to quit, the client sends `QUIT` and closes the connection.
 
 
-
-
-
-
-
-
-## Build the Static Library (Linux / ACAD)
-From the project folder, run:
-- g++ -Wall -Wextra -c wordlelib.cpp -o wordlelib.o
-- ar rcs libwordle.a wordlelib.o
-
-
-
-## Link the Library with the Programs
-After Client.cpp and server.cpp include "wordlelib.h" and actually call the library functions, they can be compiled with:
-- g++ -Wall -Wextra Client.cpp libwordle.a -o client
-- g++ -Wall -Wextra server.cpp libwordle.a -o server
-
-
-## Build Using the Makefile or Manual Instructions
-You can compile the program manually using the steps below or use the included Makefile to simplify compiling the library, client, and server on Linux/ACAD.
-
-Client Execution:
-After compiling the client, run ./client with a valid server address. Optionally, you can also run a custom port number:
-- ./client 127.0.0.2
-- ./client 127.0.0.2 50300
-
-Server Execution:
-After compiling the server, run ./server. Optionally, you can also run a custom port number:
-- ./server
-- ./server 50300
-
-**Communication Protocol**:
-The application uses TCP (AF_INET, SOCK_STREAM). Messages are plain text terminated by a newline (\n).
-- Sender	Example message	Meaning
-- Server	HELLO\n	Greeting when a client connects.
-- Client	READY\n	Request a Wordle word.
-- Server	WORD black\n	Send a word (currently black in the test server).
-- Client	BYE\n	End the session.
 
 ## References
 
