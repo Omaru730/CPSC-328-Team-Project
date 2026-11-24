@@ -1,5 +1,6 @@
 /************************************************************/
 /* Author: Keith Groves */
+/* Networking changes adapted by Jason Vaux from Project 5. */
 /* Major: Computer Science */
 /* Creation Date: 11/11/2026 */
 /* Due Date:  11/23/2026 */
@@ -8,8 +9,8 @@
 /* Assignment: Group Project */
 /* Filename: Client.cpp */
 /* Purpose: This program reads in a server address and a given port
-/* number and uses them to connect to a listening server. the program 
-/* then initiates a Wordle game.*/
+ * number and uses them to connect to a listening server. the program
+ * then initiates a Wordle game.*/
 /************************************************************/
 
 #include <iostream>
@@ -20,6 +21,9 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <netdb.h>
+#include <string.h>
+#include <stdlib.h>
 using namespace std;
 
 void Menue(int Guesses, int Socket, string CurrentWord, string GuessedWord);
@@ -29,10 +33,10 @@ void Output(string Dummy, vector<char> CorrectLetters, vector<char> YellowLetter
 /*************************************************************************/
 /* */
 /* Function name: main */
-/* Description: Takes in command line arguments from the terminal. After validating them, 
-/* the program connects to a listening server and initiates a game of Wordle. */
+/* Description: Takes in command line arguments from the terminal. After validating them,
+ * the program connects to a listening server and initiates a game of Wordle. */
 /* Parameters: int argc: the number of command line arguments put into the terminal
-/*             char *argv[]: stores the name of each Command line argument */
+ *             char *argv[]: stores the name of each Command line argument */
 /* Return Value: int*/
 /* */
 /*************************************************************************/
@@ -44,56 +48,84 @@ int main(int argc, char *argv[])
     int Socket;
     int Port = 50400;
 
-    
-    if (argc != 2)
-    {
-        cout << "Usage" << argv[0] << ": Failed to provide the required CLAs" << endl;
-        exit(1);
-    }
-    
-    struct sockaddr_in addr;
-    addr.sin_family = AF_INET;
 
-    if( inet_pton(AF_INET, argv[1], &addr.sin_addr) <= 0)
+    // Check command-line arguments.
+    if (argc != 2 && argc != 3)
     {
-        perror("invalid address");
+        cout << "Usage: " << argv[0] << " hostname [port]" << endl;
         exit(1);
     }
-    
-    if (argc > 2)
+
+    // Use the optional port if provided.
+    if (argc == 3)
     {
-        addr.sin_port = htons(atoi(argv[2]));
+        Port = atoi(argv[2]);
+        if (Port < 1024 || Port > 65535)
+        {
+            cout << "Invalid port number" << endl;
+            exit(1);
+        }
     }
-    else
+
+    // Find the server.
+    // Adapted from Project 5 (QOTD), qotd_JVaux.c.
+    // Course example referenced in Project 5: sockets/sum/client.c
+    struct addrinfo hints;
+    struct addrinfo *serverInfo;
+    struct sockaddr_in *server;
+    int rv;
+
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+
+    rv = getaddrinfo(argv[1], NULL, &hints, &serverInfo);
+
+    if (rv != 0)
     {
-        addr.sin_port = htons(Port);
+        cout << "Error finding server: " << gai_strerror(rv) << endl;
+        exit(1);
     }
+
+    server = (struct sockaddr_in *)serverInfo->ai_addr;
+    server->sin_port = htons(Port);
 
     // creates the client socket
-    if ((Socket = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+    Socket = socket(AF_INET, SOCK_STREAM, 0);
+    if (Socket == -1)
     {
-        perror("Failed to create a socket.");
-        exit(1); 
+        perror("Error creating socket");
+        freeaddrinfo(serverInfo);
+        exit(1);
     }
+
     // connects the client to the server with the given address
-    if (connect(Socket, (struct sockaddr *)&addr, sizeof(addr)) < 0)
+    // Course example referenced in Project 5: sockets/tcpcliserv/tcpcli.c
+    if (connect(Socket, (struct sockaddr *)server,
+                sizeof(struct sockaddr_in)) == -1)
     {
-        perror("Failed to create a server connection.");
-        exit(1);  
+        perror("Error connecting to server");
+        close(Socket);
+        freeaddrinfo(serverInfo);
+        exit(1);
     }
-    
+
+    freeaddrinfo(serverInfo);
+
     char request[10];
     // waits for the server to send "HELLO" message
     if (receiveMessage(Socket, request, 10) != 1)
     {
         perror("Failed to recieve message");
+        close(Socket);
         exit(1);
     }
-    // send "READY" to the server after verifying 
+    // send "READY" to the server after verifying
     // communication.
     if (sendMessage(Socket, "READY\n") != 1)
     {
         perror("Failed to send message");
+        close(Socket);
         exit(1);
     }
     char receive[20];
@@ -101,11 +133,15 @@ int main(int argc, char *argv[])
     if (receiveMessage(Socket, receive, 20) != 1)
     {
         perror("Failed to recieve message");
+        close(Socket);
         exit(1);
     }
-    
+
     CurrentWord = receive;
     Menue(Guesses, Socket, CurrentWord, GuessedWord);
+
+    close(Socket);
+    return 0;
 }
 
 
@@ -113,13 +149,13 @@ int main(int argc, char *argv[])
 /* */
 /* Function name: Menue */
 /* Description: Simulates a standard wordle application. the user has six
-/* attempts to guess a hiden word. if they get it right, the program notifies
-/* the user that they won and prompts them if they want to start again. if not,
-/* the program outputs any letters that the user correctly guessed and keeps 
-/* prompting for new words until the user runs out of guesses or correctly 
-/* guesses the given word.*/
+ * attempts to guess a hiden word. if they get it right, the program notifies
+ * the user that they won and prompts them if they want to start again. if not,
+ * the program outputs any letters that the user correctly guessed and keeps
+ * prompting for new words until the user runs out of guesses or correctly
+ * guesses the given word.*/
 /* Parameters: string CorrectWord: The given word being compared against
-/*             string GuessedWord: the proposed word being tested
+ *             string GuessedWord: the proposed word being tested
                int Guesses: the number of guesses to find the given word
                int Socket: Socket used to communicate with the server.*/
 /* Return Value: none*/
@@ -134,13 +170,13 @@ void Menue(int Guesses, int Socket, string CurrentWord, string GuessedWord)
         cout << "Please guess a word!" << endl;
         while (Guesses != 0)
         {
-            Guesses--;
             cin >> GuessedWord;
             if (GuessedWord.length() != 5)
             {
                 cout << "wrong word length" << endl;
                 continue;
             }
+            Guesses--;
             // if the player correctly guesses the hiden word, notify the player
             // and reset their guesses
             if (GuessedWord == CurrentWord)
@@ -154,10 +190,10 @@ void Menue(int Guesses, int Socket, string CurrentWord, string GuessedWord)
             else if (Guesses != 0 && GuessedWord != CurrentWord)
             {
                 CorrectnessCheck(GuessedWord, CurrentWord);
-                cout << "You have " << Guesses << " guesses left." << endl; 
+                cout << "You have " << Guesses << " guesses left." << endl;
             }
             // if the player runs out of guesses and failed to get the word,
-            // notify the player, tell them which word it was, and reset their 
+            // notify the player, tell them which word it was, and reset their
             // guesses.
             else
             {
@@ -176,12 +212,14 @@ void Menue(int Guesses, int Socket, string CurrentWord, string GuessedWord)
             if (sendMessage(Socket, "READY\n") != 1)
             {
                 perror("Failed to send message");
+                close(Socket);
                 exit(1);
             }
             char receive[20];
             if (receiveMessage(Socket, receive, 20) != 1)
             {
                 perror("Failed to recieve message");
+                close(Socket);
                 exit(1);
             }
             CurrentWord = receive;
@@ -193,9 +231,10 @@ void Menue(int Guesses, int Socket, string CurrentWord, string GuessedWord)
             if (sendMessage(Socket, "QUIT\n") != 1)
             {
                 perror("Failed to send message");
+                close(Socket);
                 exit(1);
             }
-            exit(1);
+            return;
         }
     }
 }
@@ -205,11 +244,11 @@ void Menue(int Guesses, int Socket, string CurrentWord, string GuessedWord)
 /*************************************************************************/
 /* */
 /* Function name: CorrectnessCheck */
-/* Description: takes a given word and a proposed word and determines if 
-/* they have the same letters. The function then organizes these letters
-/* based on if they are in the correct posion or not. */
+/* Description: takes a given word and a proposed word and determines if
+ * they have the same letters. The function then organizes these letters
+ * based on if they are in the correct posion or not. */
 /* Parameters: string CorrectWord: The given word being compared against
-/*             string GuessedWord: the proposed word being tested*/
+ *             string GuessedWord: the proposed word being tested*/
 /* Return Value: none*/
 /* */
 /*************************************************************************/
@@ -238,7 +277,7 @@ void CorrectnessCheck(string GuessedWord, string CurrentWord)
         {
             Dummy[i] = GuessedWord[i];
             CorrectLetters.push_back(GuessedWord[i]);
-            
+
             if(tracker.find(GuessedWord[i]) != std::string::npos)
             {
                 trackerpos = tracker.find(GuessedWord[i]);
@@ -268,6 +307,7 @@ void CorrectnessCheck(string GuessedWord, string CurrentWord)
         {
             Dummy[Dummy.find(YellowLetters[i])] = '_';
             YellowLetters.erase(YellowLetters.begin() + i);
+            i--;
         }
     }
 
@@ -278,13 +318,12 @@ void CorrectnessCheck(string GuessedWord, string CurrentWord)
 /*************************************************************************/
 /* */
 /* Function name: Output */
-/* Description: Outputs green letters, yellow letters, and their correct 
-/* positions. */
-/* Parameters: string Dummy: a string representing the positions of each found 
-/*             character from a guess. */
+/* Description: Outputs green letters, yellow letters, and their correct
+ * positions. */
+/* Parameters: string Dummy: a string representing the positions of each found
+ *             character from a guess. */
 /*             vector<char> CorrectLetters: a vector storing green letters
-/*             vector <char> YellowLetters: a vector storing yellow letters*/
-/*             
+ *             vector <char> YellowLetters: a vector storing yellow letters*/
 /* Return Value: none */
 /* */
 /*************************************************************************/
